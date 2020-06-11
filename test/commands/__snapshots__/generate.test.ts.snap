@@ -1,0 +1,11 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`generate command with force 1`] = `
+"Configuration updated successfully for paths:
+⟳ test/config/vtex/config.ts
+⟳ test/config/vtex/customer1/config.ts
+⟳ test/config/vtex/customer1/master/config.ts
+⟳ test/config/vtex/customer1/master/workspace1/config.ts
+⟳ test/config/vtex/customer1/master/workspace2/config.ts
+"
+`;
