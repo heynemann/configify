@@ -1,5 +1,5 @@
-import { Retriever } from './interface'
-import { join } from 'path'
+import { Retriever } from '../interface'
+import { join, resolve } from 'path'
 import { promises } from 'fs'
 
 export class FullRetriever implements Retriever {
@@ -7,7 +7,7 @@ export class FullRetriever implements Retriever {
 
   async *walk(dir: string): AsyncGenerator<string> {
     for await (const d of await promises.opendir(dir)) {
-      const entry = join(dir, d.name)
+      const entry = resolve(join(dir, d.name))
       if (d.isFile() && d.name === 'config.ts') {
         yield entry
       } else if (d.isDirectory()) {
