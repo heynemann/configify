@@ -16,6 +16,6 @@ module.exports = {
   rules: {
     'no-useless-constructor': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
-    'unicorn/no-abusive-eslint-disable': 'off,
+    'unicorn/no-abusive-eslint-disable': 'off',
   },
 }

@@ -1,10 +1,11 @@
 import { Command, flags } from '@oclif/command'
 import { Configify } from '../core'
-import { accessSync } from 'fs'
-import { constants } from 'fs'
+import { accessSync, constants } from 'fs'
+import { join } from 'path'
 import { FullRetriever } from '../retrievers/full'
 import { GraphConfigBuilder } from '../builders/graph'
-import { Builder } from '../interface'
+import { Neo4JStorage } from '../storages/neo4j'
+import { Builder, Storage } from '../interface'
 
 export default class Generate extends Command {
   static description = 'Updates the configuration with the specified parameters'
@@ -29,7 +30,10 @@ Configuration updated successfully for paths:
 
   static args = [{ name: 'path' }]
 
-  async run(customBuilder: Builder | null = null): Promise<void> {
+  async run(
+    customBuilder: Builder | null = null,
+    customStorage: Storage | null = null
+  ): Promise<void> {
     const { args, flags } = this.parse(Generate)
     if (args.path === null) {
       this.error('The source path is required.', { exit: 100 })
@@ -40,13 +44,30 @@ Configuration updated successfully for paths:
       this.error('The source path could not be found.', { exit: 100 })
     }
 
+    try {
+      accessSync(join(args.path, 'env.ts'), constants.F_OK)
+    } catch {
+      this.error(
+        'There is no env.ts environment configuration in the source path.',
+        { exit: 100 }
+      )
+    }
+
     if (!flags.force) {
       this.error('TODO: Retrieve without forcing full scan.', { exit: 999 })
     }
 
     const retriever = new FullRetriever(this.log)
     const builder = customBuilder || new GraphConfigBuilder(this.log)
-    const configify = new Configify(this.log, retriever, builder)
+    const storageFactory = (settings: Record<string, any>): Storage => {
+      return customStorage || new Neo4JStorage(settings, this.log)
+    }
+    const configify = new Configify(
+      this.log,
+      retriever,
+      builder,
+      storageFactory
+    )
     const result = await configify.run(args.path)
 
     if (result.paths.length === 0) {

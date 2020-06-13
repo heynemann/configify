@@ -1,10 +1,27 @@
 version: '3'
 services:
-  orientdb:
-    image: "orientdb:latest"
-    environment:
-      - ORIENTDB_ROOT_PASSWORD=root
-      - ORIENTDB_NODE_NAME=odb1
+  # orientdb:
+    # image: "orientdb:latest"
+    # environment:
+      # - ORIENTDB_ROOT_PASSWORD=root
+      # - ORIENTDB_NODE_NAME=odb1
+    # ports:
+      # - "2424:2424"
+      # - "2480:2480"
+  neo4j:
+    image: neo4j:latest
+    restart: unless-stopped
     ports:
-      - "2424:2424"
-      - "2480:2480"
+      - 7474:7474
+      - 7687:7687
+    volumes:
+      - ./docker/conf:/conf
+      - ./docker/data:/data
+      - ./docker/import:/import
+      - ./docker/logs:/logs
+      - ./docker/plugins:/plugins
+    environment:
+      # Raise memory limits
+      - NEO4J_dbms_memory_pagecache_size=1G
+      - NEO4J_dbms.memory.heap.initial_size=1G
+      - NEO4J_dbms_memory_heap_max__size=1G

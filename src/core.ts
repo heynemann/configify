@@ -1,4 +1,5 @@
-import { Retriever, Builder } from './interface'
+import { Retriever, Builder, Environment, Storage } from './interface'
+import { join, resolve } from 'path'
 
 export class Result {
   public constructor(public paths: string[]) {}
@@ -8,12 +9,31 @@ export class Configify {
   public constructor(
     private logger: (msg: string) => void,
     private retriever: Retriever,
-    private builder: Builder
+    private builder: Builder,
+    private storageFactory: (settings: Record<string, any>) => Storage
   ) {}
 
   async run(path: string): Promise<Result> {
-    const paths = await this.retriever.retrievePaths(path)
-    await this.builder.build(paths)
-    return new Result(paths)
+    const env = await this.getEnv(path)
+    const settings = env.getEnv()
+    const storage = this.storageFactory(settings)
+    try {
+      const paths = await this.retriever.retrievePaths(path)
+      const node = await this.builder.build(path, paths)
+      await storage.updateNodes(node)
+      return new Result(paths)
+    } finally {
+      await storage.destructor()
+    }
+  }
+
+  async getEnv(path: string): Promise<Environment> {
+    const envPath = resolve(join(path, 'env.ts'))
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const module = require(envPath)
+    if (!module.default) {
+      throw new Error('Env class could not be found in env.ts')
+    }
+    return new module.default() as Environment
   }
 }

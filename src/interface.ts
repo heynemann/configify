@@ -1,5 +1,6 @@
+import { Node } from './graph'
+
 export interface ConfigDefinition {
-  new (): ConfigDefinition
   getConfig(): Record<string, any>
 }
 
@@ -10,5 +11,14 @@ export interface Retriever {
 
 export interface Builder {
   logger: (msg: string) => void
-  build(paths: string[]): Promise<void>
+  build(rootPath: string, paths: string[]): Promise<Node>
+}
+
+export interface Environment {
+  getEnv(): Promise<Record<string, any>>
+}
+
+export interface Storage {
+  updateNodes(node: Node): Promise<void>
+  destructor(): Promise<void>
 }
