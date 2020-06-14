@@ -32,8 +32,10 @@ export class Configify {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const module = require(envPath)
     if (!module.default) {
-      throw new Error('Env class could not be found in env.ts')
+      throw new Error('env class could not be found in env.ts')
     }
-    return new module.default() as Environment
+    this.logger(`ⓘ environment successfully read from ${envPath}.`)
+    const EnvClass = module.default
+    return new EnvClass() as Environment
   }
 }

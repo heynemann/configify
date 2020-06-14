@@ -1,7 +1,13 @@
 import { dirname, relative } from 'path'
 import { Builder, ConfigDefinition } from '../interface'
 import { Node } from '../graph'
-import { CONFIG_NODE, KEY_NODE, EXTENDS_EDGE, HAS_KEY_EDGE } from '../constants'
+import {
+  CONFIG_NODE,
+  KEY_NODE,
+  EXTENDS_EDGE,
+  IS_PARENT_EDGE,
+  HAS_KEY_EDGE,
+} from '../constants'
 
 export class GraphConfigBuilder implements Builder {
   public constructor(public logger: (msg: string) => void) {}
@@ -16,20 +22,19 @@ export class GraphConfigBuilder implements Builder {
 
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const configModule = require(path.replace('.ts', ''))
-      const ConfigClass = configModule.default as ConfigDefinition
-      const config = new ConfigClass()
+      const ConfigClass = configModule.default
+      const config = new ConfigClass() as ConfigDefinition
 
       const node = new Node(CONFIG_NODE, {
         path: relative(rootPath, dir),
       })
-      prevNode.addEdge(node, EXTENDS_EDGE)
+      prevNode.addEdge(node, IS_PARENT_EDGE)
+      node.addEdge(prevNode, EXTENDS_EDGE)
 
       const data = await config.getConfig()
-      for (const key in Object.keys(data)) {
-        if ({}.hasOwnProperty.call(data, key)) {
-          const keyNode = new Node(KEY_NODE, { name: key, value: data[key] })
-          node.addEdge(keyNode, HAS_KEY_EDGE)
-        }
+      for (const key of Object.keys(data)) {
+        const keyNode = new Node(KEY_NODE, { name: key, value: data[key] })
+        node.addEdge(keyNode, HAS_KEY_EDGE)
       }
     })
 

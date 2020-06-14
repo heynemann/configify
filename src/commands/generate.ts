@@ -75,7 +75,7 @@ Configuration updated successfully for paths:
     }
 
     this.log(
-      `Configuration updated successfully for paths:\n⟳ ${result.paths.join(
+      `\nConfiguration updated successfully for paths:\n⟳ ${result.paths.join(
         '\n⟳ '
       )}`
     )
