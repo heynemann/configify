@@ -1,7 +1,7 @@
 import { Command, flags } from '@oclif/command'
 import { Configify } from '../core'
 import { accessSync, constants } from 'fs'
-import { join } from 'path'
+import { join, relative } from 'path'
 import { FullRetriever } from '../retrievers/full'
 import { GraphConfigBuilder } from '../builders/graph'
 import { Neo4JStorage } from '../storages/neo4j'
@@ -75,9 +75,9 @@ Configuration updated successfully for paths:
     }
 
     this.log(
-      `\nConfiguration updated successfully for paths:\n⟳ ${result.paths.join(
-        '\n⟳ '
-      )}`
+      `\nConfiguration updated successfully for paths:\n⟳ ${result.paths
+        .map((path) => relative(process.cwd(), path))
+        .join('\n⟳ ')}`
     )
   }
 }

@@ -28,9 +28,9 @@ export class Configify {
   }
 
   async getEnv(path: string): Promise<Environment> {
-    const envPath = resolve(join(path, 'env.ts'))
+    const envPath = join(path, 'env.ts')
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const module = require(envPath)
+    const module = require(resolve(envPath))
     if (!module.default) {
       throw new Error('env class could not be found in env.ts')
     }
