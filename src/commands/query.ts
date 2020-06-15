@@ -1,7 +1,7 @@
+import { PerformanceObserver, performance } from 'perf_hooks'
+import { accessSync, constants } from 'fs'
 import { Command, flags } from '@oclif/command'
 import { Configify } from '../core'
-import { accessSync, constants } from 'fs'
-import { join, relative } from 'path'
 import { FullRetriever } from '../retrievers/full'
 import { GraphConfigBuilder } from '../builders/graph'
 import { Neo4JStorage } from '../storages/neo4j'
@@ -46,13 +46,29 @@ export default class Query extends Command {
     const storageFactory = (settings: Record<string, any>): Storage => {
       return customStorage || new Neo4JStorage(settings, this.log)
     }
+    let duration = 0.0
+    const obs = new PerformanceObserver((items) => {
+      duration = items.getEntries()[0].duration
+      performance.clearMarks()
+    })
+    obs.observe({ entryTypes: ['measure'] })
     const configify = new Configify(
       this.log,
       retriever,
       builder,
       storageFactory
     )
+    performance.mark('query-start')
     const result = await configify.query(configPath, args.query)
-    this.log(JSON.stringify(result))
+    performance.mark('query-end')
+    performance.measure('query', 'query-start', 'query-end')
+    this.log(
+      JSON.stringify({
+        performance: {
+          queryTimeInMs: duration,
+        },
+        data: result,
+      })
+    )
   }
 }
