@@ -46,26 +46,18 @@ export default class Query extends Command {
     const storageFactory = (settings: Record<string, any>): Storage => {
       return customStorage || new Neo4JStorage(settings, this.log)
     }
-    let duration = 0.0
-    const obs = new PerformanceObserver((items) => {
-      duration = items.getEntries()[0].duration
-      performance.clearMarks()
-    })
-    obs.observe({ entryTypes: ['measure'] })
+    const t0 = performance.now()
     const configify = new Configify(
       this.log,
       retriever,
       builder,
       storageFactory
     )
-    performance.mark('query-start')
     const result = await configify.query(configPath, args.query)
-    performance.mark('query-end')
-    performance.measure('query', 'query-start', 'query-end')
     this.log(
       JSON.stringify({
         performance: {
-          queryTimeInMs: duration,
+          queryTimeInMs: performance.now() - t0,
         },
         data: result,
       })
