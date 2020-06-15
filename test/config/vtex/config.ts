@@ -4,6 +4,7 @@ export default class Config implements ConfigDefinition {
   public async getConfig(): Record<string, any> {
     return {
       conf: 'root',
+      vtex: 'only in vtex',
     }
   }
 }

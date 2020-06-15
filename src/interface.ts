@@ -20,5 +20,6 @@ export interface Environment {
 
 export interface Storage {
   updateNodes(node: Node): Promise<void>
+  query(query: string): Promise<Record<string, any> | null>
   destructor(): Promise<void>
 }

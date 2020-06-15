@@ -14,7 +14,8 @@ export class Configify {
   ) {}
 
   async run(path: string): Promise<Result> {
-    const env = await this.getEnv(path)
+    const envPath = join(path, 'env.ts')
+    const env = await this.getEnv(envPath)
     const settings = env.getEnv()
     const storage = this.storageFactory(settings)
     try {
@@ -27,14 +28,28 @@ export class Configify {
     }
   }
 
-  async getEnv(path: string): Promise<Environment> {
-    const envPath = join(path, 'env.ts')
+  async query(
+    configPath: string,
+    query: string
+  ): Promise<Record<string, any> | null> {
+    const env = await this.getEnv(configPath)
+    const settings = env.getEnv()
+    const storage = this.storageFactory(settings)
+    try {
+      const result = await storage.query(query)
+      return result
+    } finally {
+      await storage.destructor()
+    }
+  }
+
+  async getEnv(envPath: string): Promise<Environment> {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const module = require(resolve(envPath))
     if (!module.default) {
       throw new Error('env class could not be found in env.ts')
     }
-    this.logger(`ⓘ environment successfully read from ${envPath}.`)
+    // this.logger(`ⓘ environment successfully read from ${envPath}.`)
     const EnvClass = module.default
     return new EnvClass() as Environment
   }

@@ -11,6 +11,7 @@ import { stringify } from 'javascript-stringify'
 import { Node } from '../graph'
 import {
   CONFIG_NODE,
+  KEY_NODE,
   IS_PARENT_EDGE,
   EXTENDS_EDGE,
   HAS_KEY_EDGE,
@@ -113,5 +114,35 @@ export class Neo4JStorage implements BaseStorage {
       MERGE (key)-[:${BELONGS_TO_EDGE}]->(config)
       RETURN config.path AS path`
     await txc.run(query)
+  }
+
+  async query(query: string): Promise<Record<string, any> | null> {
+    const getConfigQuery = `
+      MATCH (key:${KEY_NODE})-[:${BELONGS_TO_EDGE}]->(config:${CONFIG_NODE})<-[:${EXTENDS_EDGE} *0..10]-(parent:${CONFIG_NODE} {path: $query})
+      RETURN config, key
+    `
+    const result = await this.session.run(getConfigQuery, {
+      query,
+    })
+    const results = result.records.sort((a, b) => {
+      const aPath = a.get('config').properties.path
+      const bPath = b.get('config').properties.path
+      if (aPath.length < bPath.length) {
+        return -1
+      }
+      if (aPath.length > bPath.length) {
+        return 1
+      }
+      return 0
+    })
+    // console.log(
+    const data = results.reduce((accum, a) => {
+      const key = a.get('key')
+      const propName = key.properties.name as string
+      const propValue = key.properties.value
+      accum[propName] = propValue
+      return accum
+    }, {} as { [key: string]: any })
+    return data
   }
 }
